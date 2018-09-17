@@ -51,6 +51,9 @@ type runCmd struct {
 	numSamples       uint
 	verbose          bool
 	region           string
+	cleanup          bool
+	write            bool
+	read             bool
 }
 
 // runCmd represents the run command
@@ -71,6 +74,9 @@ var cmd = &cobra.Command{
 			numSamples:       viper.GetSizeInBytes("numSamples"),
 			verbose:          viper.GetBool("verbose"),
 			region:           viper.GetString("region"),
+			cleanup:          viper.GetBool("cleanup"),
+			write:            viper.GetBool("write"),
+			read:             viper.GetBool("read"),
 		}
 		run.benchmark()
 	},
@@ -80,6 +86,12 @@ func init() {
 	rootCmd.AddCommand(cmd)
 	cmd.Flags().String("endpoint", "", "AWS endpoint (required)")
 	viper.BindPFlag("endpoint", cmd.Flags().Lookup("endpoint"))
+	cmd.Flags().Bool("cleanup", true, "cleanup objects after testing")
+	viper.BindPFlag("cleanup", cmd.Flags().Lookup("cleanup"))
+	cmd.Flags().BoolP("write", "w", true, "perform write tests")
+	viper.BindPFlag("write", cmd.Flags().Lookup("write"))
+	cmd.Flags().BoolP("read", "r", true, "perform read tests")
+	viper.BindPFlag("read", cmd.Flags().Lookup("read"))
 	// fmt.Printf("log: %s\n", viper.Get("endpoint"))
 	// if viper.GetString("endpoint") == "" {
 	// 	cmd.MarkFlagRequired("endpoint")
@@ -163,22 +175,24 @@ func (r *runCmd) benchmark() error {
 
 	params.StartClients(cfg)
 
-	fmt.Printf("Running %s test...\n", opWrite)
-	writeResult := params.Run(opWrite)
-	fmt.Println()
-
-	fmt.Printf("Running %s test...\n", opRead)
-	readResult := params.Run(opRead)
-	fmt.Println()
-
 	fmt.Println(params)
 	fmt.Println()
-	fmt.Println(writeResult)
-	fmt.Println()
-	fmt.Println(readResult)
 
-	skipCleanup := true
-	if !skipCleanup {
+	if r.write {
+		fmt.Printf("Running %s test...\n", opWrite)
+		writeResult := params.Run(opWrite)
+		fmt.Println()
+		fmt.Println(writeResult)
+	}
+
+	if r.read {
+		fmt.Printf("Running %s test...\n", opRead)
+		readResult := params.Run(opRead)
+		fmt.Println()
+		fmt.Println(readResult)
+	}
+
+	if r.cleanup {
 		fmt.Println()
 		fmt.Printf("Cleaning up %d objects...\n", r.numSamples)
 		delStartTime := time.Now()

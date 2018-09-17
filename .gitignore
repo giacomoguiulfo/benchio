@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+benchio
 
 # Test binary, build with `go test -c`
 *.test

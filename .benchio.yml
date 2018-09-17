@@ -7,3 +7,7 @@ objectNamePrefix: testobject
 numClients: 10
 numSamples: 100
 verbose: false
+cleanup: true
+write: true
+read: true
+
