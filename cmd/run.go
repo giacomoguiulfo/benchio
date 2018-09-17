@@ -50,6 +50,7 @@ type runCmd struct {
 	numClients       uint
 	numSamples       uint
 	verbose          bool
+	region           string
 }
 
 // runCmd represents the run command
@@ -69,6 +70,7 @@ var cmd = &cobra.Command{
 			numClients:       viper.GetSizeInBytes("numClients"),
 			numSamples:       viper.GetSizeInBytes("numSamples"),
 			verbose:          viper.GetBool("verbose"),
+			region:           viper.GetString("region"),
 		}
 		run.benchmark()
 	},
@@ -152,11 +154,10 @@ func (r *runCmd) benchmark() error {
 	fmt.Printf("Done (%s)\n", time.Since(timeGenData))
 	fmt.Println()
 
-	region := "us-east-1"
 	// Start the load clients and run a write test followed by a read test
 	cfg := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(r.accessKey, r.secretKey, ""),
-		Region:           aws.String(region),
+		Region:           aws.String(r.region),
 		S3ForcePathStyle: aws.Bool(true),
 	}
 

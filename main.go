@@ -20,7 +20,7 @@
 
 package main
 
-import "benchio/cmd"
+import "github.com/giacomoguiulfo/benchio/cmd"
 
 func main() {
 	cmd.Execute()
