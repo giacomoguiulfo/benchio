@@ -1,0 +1,9 @@
+accessKey: MZZRYNUQKEJZUTKLLHAD
+secretKey: hRwZ5GA7VUhh=vLdBLUqZuRqcryqyVHhuCopR5a4
+endpoint: http://localhost:8000
+bucket: testbucket
+objectSize: 1024
+objectNamePrefix: testobject
+numClients: 10
+numSamples: 100
+verbose: false
