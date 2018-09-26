@@ -3,17 +3,21 @@
 Benchmarking tool for S3 compatible object storage servers
 
 ## Requirements:
-  - golang >=1.9
+ 
+ - golang >=1.9
+
+## Installation:
+
+```sh
+go get -u https://github.com/giacomoguiulfo/benchio.git
+```
 
 ## Simple usage:
 
 ```
-go get https://github.com/giacomoguiulfo/benchio.git
-
-$GOPATH/bin/benchio run -f benchio.yaml
-
+benchio run -f benchio.yaml
 ```
-
+> This assumes that the `GOBIN` environmental variable (`GOPATH/bin`) is in your `PATH`. 
 
 ## Advanced Usage:
 
