@@ -1,4 +1,4 @@
-# bench.io
+# benchio
 
 Benchmarking tool for S3 compatible object storage servers
 
