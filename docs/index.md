@@ -1,7 +1,3 @@
-# benchio
-
-Benchmarking tool for S3 compatible object storage servers
-
 # Getting Started
 
 ## Requirements
@@ -62,3 +58,4 @@ read: true
 | `write`                             | A bool to enable/disable writes, typically this will be the first operation to run                               |
 | `read`                              | A bool to enable/disable reads, runs after writes have completed (currently buggy if using only read operations) |
 | `cleanup`                           | A bool to enable/disable cleanup operations after successful read/writes                                         |
+
