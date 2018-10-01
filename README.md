@@ -1,5 +1,9 @@
 # benchio
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/giacomoguiulfo/benchio)](https://goreportcard.com/report/github.com/giacomoguiulfo/benchio)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/giacomoguiulfo/benchio)
+[![Release](https://img.shields.io/github/release/giacomoguiulfo/benchio.svg?style=flat-square)](https://github.com/giacomoguiulfo/benchio/releases/latest)
+
 Benchmarking tool for S3 compatible object storage servers
 
 # Getting Started
