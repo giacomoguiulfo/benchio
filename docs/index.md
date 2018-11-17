@@ -1,3 +1,11 @@
+# benchio
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/giacomoguiulfo/benchio)](https://goreportcard.com/report/github.com/giacomoguiulfo/benchio)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/giacomoguiulfo/benchio)
+[![Release](https://img.shields.io/github/release/giacomoguiulfo/benchio.svg?style=flat-square)](https://github.com/giacomoguiulfo/benchio/releases/latest)
+
+Benchmarking tool for S3 compatible object storage servers
+
 # Getting Started
 
 ## Requirements
@@ -58,4 +66,3 @@ read: true
 | `write`                             | A bool to enable/disable writes, typically this will be the first operation to run                               |
 | `read`                              | A bool to enable/disable reads, runs after writes have completed (currently buggy if using only read operations) |
 | `cleanup`                           | A bool to enable/disable cleanup operations after successful read/writes                                         |
-
