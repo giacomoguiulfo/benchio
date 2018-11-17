@@ -23,8 +23,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/viper"
-
 	"github.com/spf13/cobra"
 )
 
@@ -39,13 +37,6 @@ var configureCmd = &cobra.Command{
 	},
 }
 
-func newConfigureCmd() *cobra.Command {
-	fmt.Printf("log: %t\n", viper.GetBool("verbose"))
-	configureCmd.Flags().StringP("pipol", "p", "", "lol")
-	viper.BindPFlag("pipol", configureCmd.Flags().Lookup("pipol"))
-	return configureCmd
+func init() {
+	rootCmd.AddCommand(configureCmd)
 }
-
-// func init() {
-// 	rootCmd.AddCommand(configureCmd)
-// }

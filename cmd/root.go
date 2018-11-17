@@ -36,8 +36,8 @@ var verbose bool
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "benchio",
-	Short: "benchio - Benchmarking Big Brother (for s3)",
-	Long:  ``,
+	Short: "benchio - A simple benchmark tool for s3",
+	Long:  `A lightweight minimalistic tool to benchmark AWS S3 compatible object storage services`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -54,10 +54,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "file", "f", "", "config file (default is $HOME/.benchio.yml)")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
-
-	rootCmd.AddCommand(newConfigureCmd())
-
-	// initConfig()
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -81,13 +77,8 @@ func initConfig() {
 	viper.SetEnvPrefix("benchio")
 	viper.AutomaticEnv() // read in environment variables that match
 
-	// if viper.GetBool("verbose") == true {
-	// 	log.SetLevel(log.DebugLevel)
-	// }
-
 	if err := viper.ReadInConfig(); err == nil {
 		log.Debug("Using config file: ", viper.ConfigFileUsed())
-		// fmt.Println("Using config file:", )
 	} else {
 		fmt.Println("Unable to find config file")
 	}
