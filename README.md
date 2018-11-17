@@ -4,7 +4,8 @@
 [![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](http://godoc.org/github.com/giacomoguiulfo/benchio)
 [![Release](https://img.shields.io/github/release/giacomoguiulfo/benchio.svg?style=flat-square)](https://github.com/giacomoguiulfo/benchio/releases/latest)
 
-Benchmarking tool for S3 compatible object storage servers
+A lightweight minimalistic tool to benchmark AWS S3 compatible object storage services.
+Benchio is a fork of [s3bench](https://github.com/igneous-systems/s3bench) to further extend its functionality.
 
 # Getting Started
 
