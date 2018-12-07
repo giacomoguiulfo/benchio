@@ -176,7 +176,8 @@ func (r *Runner) startClient(cfg *aws.Config) {
 }
 
 func (r *Runner) run(op string, bufferBytes []byte) report {
-	if r.conf.Write == false || r.conf.Read == false {
+	if (r.conf.Write == false && op == writeOp) ||
+		(r.conf.Read == false && op == readOp) {
 		return report{}
 	}
 	startTime := time.Now()
