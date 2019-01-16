@@ -39,6 +39,7 @@ var runCmd = &cobra.Command{
 			Endpoint:         viper.GetString("endpoint"),
 			Bucket:           viper.GetString("bucket"),
 			ObjectSize:       viper.GetInt64("objectSize"),
+			ObjectSplit:      viper.GetSizeInBytes("objectSplit"),
 			ObjectNamePrefix: viper.GetString("objectNamePrefix"),
 			Clients:          viper.GetSizeInBytes("numClients"),
 			ObjectCount:      viper.GetSizeInBytes("numSamples"),
