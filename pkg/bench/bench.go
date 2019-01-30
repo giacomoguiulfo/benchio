@@ -30,6 +30,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -43,6 +45,7 @@ type Config struct {
 	Region           string
 	Operation        string
 	Clients          uint
+	MultipartSize    int64
 	ObjectSize       int64
 	ObjectCount      uint
 	ObjectNamePrefix string
@@ -83,6 +86,10 @@ const (
 	writeOp    = "Write"
 	commitSize = 1000
 )
+
+type DiscardAt struct {
+	writer io.Writer
+}
 
 // Mark performs a benchmark test on the configured service
 func Mark(conf *Config) error {
@@ -144,7 +151,23 @@ func (r *Runner) prepare(cfg *aws.Config) {
 }
 
 func (r *Runner) startClient(cfg *aws.Config) {
-	client := s3.New(session.New(), cfg)
+	session := session.New(cfg)
+	client := s3.New(session)
+	var uploader *s3manager.Uploader
+	var downloader *s3manager.Downloader
+	if r.conf.MultipartSize > 0 {
+		uploader = s3manager.NewUploader(session, func(u *s3manager.Uploader) {
+			u.S3 = client
+			u.Concurrency = 1
+			u.LeavePartsOnError = true
+			u.PartSize = r.conf.MultipartSize
+		})
+		downloader = s3manager.NewDownloader(session, func(d *s3manager.Downloader) {
+			d.S3 = client
+			d.Concurrency = 1
+			d.PartSize = r.conf.MultipartSize
+		})
+	}
 	for request := range r.requests {
 		startTime := time.Now()
 		bytes := r.conf.ObjectSize
@@ -154,12 +177,19 @@ func (r *Runner) startClient(cfg *aws.Config) {
 			req, _ := client.PutObjectRequest(reqType)
 			req.HTTPRequest.Header.Add("X-Amz-Content-Sha256", "UNSIGNED-PAYLOAD")
 			err = req.Send()
+		case *s3manager.UploadInput:
+			_, err = uploader.Upload(reqType)
 		case *s3.GetObjectInput:
-			req, resp := client.GetObjectRequest(reqType)
-			if err = req.Send(); err == nil {
-				bytes, err = io.Copy(ioutil.Discard, resp.Body)
+			if r.conf.MultipartSize > 0 {
+				var writer io.WriterAt = &DiscardAt{ioutil.Discard}
+				bytes, err = downloader.Download(writer, reqType)
 			} else {
-				bytes = 0
+				req, resp := client.GetObjectRequest(reqType)
+				if err = req.Send(); err == nil {
+					bytes, err = io.Copy(ioutil.Discard, resp.Body)
+				} else {
+					bytes = 0
+				}
 			}
 			if bytes != r.conf.ObjectSize {
 				err = fmt.Errorf("Expected object length %d, actual %d", r.conf.ObjectSize, bytes)
@@ -211,10 +241,18 @@ func (r *Runner) submitLoad(op string, bufferBytes []byte) {
 	for i := uint(0); i < r.conf.ObjectCount; i++ {
 		key := aws.String(fmt.Sprintf("%s%d", r.conf.ObjectNamePrefix, i))
 		if op == writeOp {
-			r.requests <- &s3.PutObjectInput{
-				Bucket: Bucket,
-				Key:    key,
-				Body:   bytes.NewReader(bufferBytes),
+			if r.conf.MultipartSize > 0 {
+				r.requests <- &s3manager.UploadInput{
+					Bucket: Bucket,
+					Key:    key,
+					Body:   bytes.NewReader(bufferBytes),
+				}
+			} else {
+				r.requests <- &s3.PutObjectInput{
+					Bucket: Bucket,
+					Key:    key,
+					Body:   bytes.NewReader(bufferBytes),
+				}
 			}
 		} else if op == readOp {
 			r.requests <- &s3.GetObjectInput{
@@ -268,6 +306,7 @@ func (r Runner) String() string {
 	output += fmt.Sprintf("Bucket:           %s\n", r.conf.Bucket)
 	output += fmt.Sprintf("ObjectNamePrefix: %s\n", r.conf.ObjectNamePrefix)
 	output += fmt.Sprintf("ObjectSize:       %0.4f MB\n", float64(r.conf.ObjectSize)/(1024*1024))
+	output += fmt.Sprintf("MultipartSize:    %0.4f MB\n", float64(r.conf.MultipartSize)/(1024*1024))
 	output += fmt.Sprintf("numClients:       %d\n", r.conf.Clients)
 	output += fmt.Sprintf("numSamples:       %d\n", r.conf.ObjectCount)
 	output += fmt.Sprintf("Verbose:          %t\n", r.conf.Verbose)
@@ -300,4 +339,7 @@ func (r report) percentile(i int) float64 {
 		i = int(float64(i) / 100 * float64(len(r.opDurations)))
 	}
 	return r.opDurations[i]
+}
+func (w *DiscardAt) WriteAt(p []byte, off int64) (n int, err error) {
+	return w.writer.Write(p)
 }
