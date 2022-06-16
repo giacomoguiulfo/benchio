@@ -47,6 +47,7 @@ type Config struct {
 	Clients          uint
 	MultipartSize    int64
 	ObjectSize       int64
+	ObjectSplit      uint
 	ObjectCount      uint
 	ObjectNamePrefix string
 	Bucket           string
@@ -87,6 +88,13 @@ const (
 	commitSize = 1000
 )
 
+type RepeatReader struct {
+	reader        io.ReadSeeker
+	numBytes      int64
+	numRepeat     uint
+	currentRepeat uint
+}
+
 type DiscardAt struct {
 	writer io.Writer
 }
@@ -108,7 +116,7 @@ func Mark(conf *Config) error {
 		endpoints: strings.Split(conf.Endpoint, ","),
 	}
 	fmt.Println(runner)
-	bufferBytes, err := generateSampleData(conf.ObjectSize)
+	bufferBytes, err := generateSampleData(conf.ObjectSize / int64(conf.ObjectSplit))
 	if err != nil {
 		return err
 	}
@@ -248,10 +256,11 @@ func (r *Runner) submitLoad(op string, bufferBytes []byte) {
 					Body:   bytes.NewReader(bufferBytes),
 				}
 			} else {
-				r.requests <- &s3.PutObjectInput{
-					Bucket: Bucket,
-					Key:    key,
-					Body:   bytes.NewReader(bufferBytes),
+        reader := RepeatReader{bytes.NewReader(bufferBytes), int64(len(bufferBytes)), r.conf.ObjectSplit, 0}
+			  r.requests <- &s3.PutObjectInput{
+				  Bucket: Bucket,
+				  Key:    key,
+				  Body:   &reader,
 				}
 			}
 		} else if op == readOp {
@@ -306,6 +315,7 @@ func (r Runner) String() string {
 	output += fmt.Sprintf("Bucket:           %s\n", r.conf.Bucket)
 	output += fmt.Sprintf("ObjectNamePrefix: %s\n", r.conf.ObjectNamePrefix)
 	output += fmt.Sprintf("ObjectSize:       %0.4f MB\n", float64(r.conf.ObjectSize)/(1024*1024))
+	output += fmt.Sprintf("ObjectSplit:      %d\n", r.conf.ObjectSplit)
 	output += fmt.Sprintf("MultipartSize:    %0.4f MB\n", float64(r.conf.MultipartSize)/(1024*1024))
 	output += fmt.Sprintf("numClients:       %d\n", r.conf.Clients)
 	output += fmt.Sprintf("numSamples:       %d\n", r.conf.ObjectCount)
@@ -340,6 +350,46 @@ func (r report) percentile(i int) float64 {
 	}
 	return r.opDurations[i]
 }
+
+func (r *RepeatReader) Read(b []byte) (int, error) {
+	n, err := r.reader.Read(b)
+	if err != nil && err != io.EOF {
+		return n, err
+	}
+	if err != nil && n != 0 {
+		return n, nil
+	}
+	if err != nil {
+		r.currentRepeat += 1
+		if r.currentRepeat == r.numRepeat {
+			return n, err
+		}
+		r.reader.Seek(0, io.SeekStart)
+		return r.Read(b)
+	}
+	return n, err
+}
+
+func (r *RepeatReader) Seek(offset int64, whence int) (int64, error) {
+	if whence == io.SeekCurrent {
+		currentOffset, err := r.reader.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return currentOffset * int64(r.currentRepeat), err
+		}
+		offset = currentOffset + offset
+		whence = io.SeekStart
+	}
+	div, rem := offset/int64(r.numBytes), offset%int64(r.numBytes)
+	switch whence {
+	case io.SeekStart:
+		r.currentRepeat = uint(div)
+	case io.SeekEnd:
+		r.currentRepeat = r.numRepeat - uint(div) - 1
+	}
+	currentOffset, err := r.reader.Seek(rem, whence)
+	return int64(r.numBytes)*int64(r.currentRepeat) + currentOffset, err
+}
+
 func (w *DiscardAt) WriteAt(p []byte, off int64) (n int, err error) {
 	return w.writer.Write(p)
 }

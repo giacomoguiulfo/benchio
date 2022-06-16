@@ -4,6 +4,7 @@ endpoint: http://localhost:8000
 bucket: testbucket
 multipartSize: 0
 objectSize: 1024
+objectSplit: 1
 objectNamePrefix: testobject
 numClients: 10
 numSamples: 100
