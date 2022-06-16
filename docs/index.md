@@ -39,6 +39,7 @@ secretKey: hRwZ5GA7VUhh=vLdBLUqZuRqcryqyVHhuCopR5a4
 endpoint: http://localhost:8000
 bucket: testbucket
 objectSize: 1024
+multipartSize: 0
 objectNamePrefix: testobject
 numClients: 10
 numSamples: 100
@@ -58,6 +59,7 @@ read: true
 | `endpoint`                          | These are endpoint targets for the workloads. Multiple can be passed as a comma separated list.                  |
 | `bucket`                            | The target bucket to be used. Must already be created on the specified endpoint                                  |
 | `objectSize`                        | Size for each object to be used in the workload (Currently measured in bytes)                                    |
+| `multipartSize`                     | Use a multipart transfer, with parts of the given size (in bytes). Use 0 (the default) to disable                |
 | `objectNamePrefix`                  | Prefix to be used in the object naming                                                                           |
 | `numClients`                        | Number of clients, also referred to as 'workers'                                                                 |
 | `numSamples`                        | Number of objects to server to the endpoint                                                                      |
