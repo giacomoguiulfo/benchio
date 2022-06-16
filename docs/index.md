@@ -40,6 +40,7 @@ endpoint: http://localhost:8000
 bucket: testbucket
 objectSize: 1024
 objectSplit: 1
+multipartSize: 0
 objectNamePrefix: testobject
 numClients: 10
 numSamples: 100
@@ -61,6 +62,7 @@ read: true
 | `objectSize`                        | Size for each object to be used in the workload (Currently measured in bytes)                                    |
 | `objectSplit`                       | Split the object in memory into multiple repeated parts, used for transferring very large objects                |
 |                                     | objectSize must divide evenly by objectSplit with no remainder                                                   |
+| `multipartSize`                     | Use a multipart transfer, with parts of the given size (in bytes). Use 0 (the default) to disable                |
 | `objectNamePrefix`                  | Prefix to be used in the object naming                                                                           |
 | `numClients`                        | Number of clients, also referred to as 'workers'                                                                 |
 | `numSamples`                        | Number of objects to server to the endpoint                                                                      |

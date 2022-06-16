@@ -38,6 +38,7 @@ var runCmd = &cobra.Command{
 			SecretKey:        viper.GetString("secretKey"),
 			Endpoint:         viper.GetString("endpoint"),
 			Bucket:           viper.GetString("bucket"),
+			MultipartSize:    viper.GetInt64("multipartSize"),
 			ObjectSize:       viper.GetInt64("objectSize"),
 			ObjectSplit:      viper.GetSizeInBytes("objectSplit"),
 			ObjectNamePrefix: viper.GetString("objectNamePrefix"),
